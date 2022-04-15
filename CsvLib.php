@@ -1,4 +1,5 @@
 <?php
+namespace App\Models;
 
 use Exception;
 use Illuminate\Support\Facades\Storage;
@@ -9,19 +10,23 @@ class CsvLib implements CsvInterface
     /**
      * @var string
      */
-    private $part = 100;
+    private $part = 10;
     /**
      * @var string
      */
     private $fullpath;
+    private $chunks;
+    private $chunkFilesPath = [];
+    private $loadDir;
 
     public function __construct($file)
     {
         if ($file) {
             $this->file = $file;
             $this->fullpath = $this->getPath();
+            $this->loadDir =  Storage::path('');
         } else {
-            throw new Exception('Загрузите файл в каталог \'Public\'');
+            throw new Exception("Загрузите файл в каталог '$this->loadDir'");
         }
     }
 
@@ -42,6 +47,20 @@ class CsvLib implements CsvInterface
     public function showCsv(): array
     {
         return array_chunk($this->csvToArray(), $this->part);
+    }
+
+    public function chunk()
+    {
+        $this->chunks = array_chunk($this->csvToArray(), $this->part);
+        foreach ($this->chunks as $key => $chunk) {
+            $name = "part$key.csv";
+            foreach ($chunk as $value) {
+                $fp = fopen($name, 'a+');
+                fputcsv($fp, $value);
+            }
+            $this->chunkFilesPath[] = Storage::path($name);
+        }
+        return $this->chunkFilesPath;
     }
 
     public function getFileSize(): string
