@@ -10,7 +10,7 @@ class CsvLib implements CsvInterface
     /**
      * @var string
      */
-    private $part = 10;
+    private $part = 100;
     /**
      * @var string
      */
@@ -44,7 +44,7 @@ class CsvLib implements CsvInterface
         return Storage::path($this->file);
     }
 
-    private function getHeader()
+    public function getHeader(): array
     {
         $data = $this->csvToArray();
         return $data[0];
@@ -55,7 +55,7 @@ class CsvLib implements CsvInterface
         return array_chunk($this->csvToArray(), $this->part);
     }
 
-    public function chunk()
+    public function chunk(): array
     {
         $this->chunks = array_chunk($this->csvToArray(), $this->part);
         $header = $this->getHeader();
@@ -63,7 +63,7 @@ class CsvLib implements CsvInterface
             $name = "part$key.csv";
             $fp = fopen($name, 'a+');
             if ($key > 0) {
-                return fputcsv($fp, $header);
+                fputcsv($fp, $header);
             }
             foreach ($chunk as $value) {
                 fputcsv($fp, $value);
@@ -76,5 +76,10 @@ class CsvLib implements CsvInterface
     public function getFileSize(): string
     {
         return filesize($this->fullpath)." bytes";
+    }
+
+    public function getNumberRows(): int
+    {
+        return count($this->csvToArray());
     }
 }
