@@ -2,7 +2,6 @@
 namespace App\Models;
 
 use Exception;
-use Illuminate\Support\Facades\Storage;
 
 class CsvLib implements CsvInterface
 {
@@ -10,7 +9,7 @@ class CsvLib implements CsvInterface
     /**
      * @var string
      */
-    private $part = 100;
+    private $part;
     /**
      * @var string
      */
@@ -19,15 +18,12 @@ class CsvLib implements CsvInterface
     private $chunkFilesPath = [];
     private $loadDir;
 
-    public function __construct($file)
+    public function __construct(CSV $csv, int $part = 100)
     {
-        if ($file) {
-            $this->file = $file;
+            $this->file = $csv->file;
             $this->fullpath = $this->getPath();
-            $this->loadDir =  Storage::path('');
-        } else {
-            throw new Exception("Загрузите файл в каталог '$this->loadDir'");
-        }
+            $this->loadDir = realpath('');
+            $this->part = $part;
     }
 
     public function csvToArray(): array
@@ -41,7 +37,7 @@ class CsvLib implements CsvInterface
 
     public function getPath(): string
     {
-        return Storage::path($this->file);
+        return realpath($this->file);
     }
 
     public function getHeader(): array
@@ -68,7 +64,7 @@ class CsvLib implements CsvInterface
             foreach ($chunk as $value) {
                 fputcsv($fp, $value);
             }
-            $this->chunkFilesPath[] = Storage::path($name);
+            $this->chunkFilesPath[] = realpath($name);
         }
         return $this->chunkFilesPath;
     }
@@ -81,5 +77,11 @@ class CsvLib implements CsvInterface
     public function getNumberRows(): int
     {
         return count($this->csvToArray());
+    }
+
+    public function getFileName(): string
+    {
+        $info = pathinfo($this->file);
+        return $info['filename'];
     }
 }
