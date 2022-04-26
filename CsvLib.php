@@ -5,7 +5,7 @@ use Exception;
 
 class CsvLib implements CsvInterface
 {
-    private $file;
+    public $file;
     /**
      * @var string
      */
@@ -18,7 +18,7 @@ class CsvLib implements CsvInterface
     private $chunkFilesPath = [];
     private $loadDir;
 
-    public function __construct(CSV $csv, int $part = 100)
+    public function __construct(CSV $csv, int $part = 2)
     {
             $this->file = $csv->file;
             $this->fullpath = $this->getPath();
@@ -51,22 +51,28 @@ class CsvLib implements CsvInterface
         return array_chunk($this->csvToArray(), $this->part);
     }
 
-    public function chunk(): array
+    public function chunk()
     {
-        $this->chunks = array_chunk($this->csvToArray(), $this->part);
+        $data = $this->getDataWithoutHead();
+        $this->chunks = array_chunk($data, $this->part);
         $header = $this->getHeader();
         foreach ($this->chunks as $key => $chunk) {
             $name = "part$key.csv";
             $fp = fopen($name, 'a+');
-            if ($key > 0) {
-                fputcsv($fp, $header);
-            }
+            fputcsv($fp, $header);
             foreach ($chunk as $value) {
                 fputcsv($fp, $value);
             }
             $this->chunkFilesPath[] = realpath($name);
         }
         return $this->chunkFilesPath;
+    }
+
+    public function getDataWithoutHead()
+    {
+        $data = $this->csvToArray();
+        unset($data[0]);
+        return $data;
     }
 
     public function getFileSize(): string

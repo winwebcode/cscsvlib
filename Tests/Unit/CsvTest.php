@@ -31,6 +31,12 @@ class CsvTest extends TestCase
         $this->assertEquals($this->name, $this->csv->file);
     }
 
+    public function testDefineFileName()
+    {
+        $this->csv->getFileName();
+        $this->assertEquals($this->name, $this->csv->file);
+    }
+
     public function testWrongExtension()
     {
         //?? how catch exception in Assert
@@ -38,22 +44,17 @@ class CsvTest extends TestCase
             $this->name = '123.mp3';
             $this->file = new CSV($this->name);
             $this->csv = new CsvLib(new CSV($this->name));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->assertNotEquals($this->name, $this->csv->file);
         }
     }
 
     public function testChunk()
     {
-        $part = count($this->csv->chunk());
-        $files[] = scandir(realpath(''));
-        //////
-    }
-
-    public function testDefineFileName()
-    {
-        $this->csv->getFileName();
-        $this->assertEquals($this->name, $this->csv->file);
+        //?? $this->fullPath - getted not corrent path = ''.
+        $parts = count($this->csv->chunk());
+        $files = scandir('.');
+        $partsExist = count(preg_grep('/part\d+.csv/', $files));
+        $this->assertEquals($parts, $partsExist);
     }
 }
